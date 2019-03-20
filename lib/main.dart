@@ -26,16 +26,18 @@ class MapSample extends StatefulWidget {
 class MapSampleState extends State<MapSample> {
   Completer<GoogleMapController> _controller = Completer();
 
-  static final CameraPosition _kGooglePlex = CameraPosition(
+  static final CameraPosition center = CameraPosition(
     target: LatLng(-0.785, -90.290),
     zoom: 8,
   );
 
-  final Set<Marker> _markers = {};
+  Set<Marker> _markers = {};
 
   @override
   Widget build(BuildContext context) {
-    setupMarkers();
+    if (_markers.length == 0) {
+      setupMarkers();
+    }
     return new Scaffold(
       appBar: AppBar(
         title: Text("Rosario's Journey"),
@@ -43,7 +45,7 @@ class MapSampleState extends State<MapSample> {
       ),
       body: GoogleMap(
         mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
+        initialCameraPosition: center,
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
 
@@ -69,13 +71,18 @@ class MapSampleState extends State<MapSample> {
   void setupMarkers() async {
     String jsonString = await MapService().loadGPSData();
       try {
+        Set<Marker> tempSet = {};
         var locations = (JSON.jsonDecode(jsonString)['features'] as List);
         for (int i = 0; i < locations.length; i++) {
           var location = Response.fromJson(locations[i]['properties']);
           Marker marker = createMarker(i, location);
-          _markers.add(marker);
+          tempSet.add(marker);
           print(location.lat.toString() + "---" + location.long.toString());
         }
+        setState(() {
+          _markers = tempSet;
+        });
+
       } catch (e) {
         print(e.toString());
       }
