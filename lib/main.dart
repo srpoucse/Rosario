@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -5,6 +6,8 @@ import 'dart:convert' as JSON;
 import 'dart:async' show Future;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:xml2json/xml2json.dart';
 
 void main() => runApp(MyApp());
 
@@ -46,6 +49,9 @@ class MapSampleState extends State<MapSample> {
     if (_markers.length == 0) {
       setupMarkers();
     }
+
+    scheduleTimer();
+
     return new Scaffold(
       appBar: AppBar(
         title: Text("Rosario's Journey"),
@@ -113,6 +119,50 @@ class MapSampleState extends State<MapSample> {
       didZoom = !didZoom;
     });
   }
+
+  void fetchData() {
+    http.get('https://www.google.com/maps/d/kml?mid=1c528h6kSOFLsJ0RWf0T-qE7j1yjCa9AB&forcekml=1').then((response) {
+      Set<Marker> tempSet = {};
+      Xml2Json xml2json = new Xml2Json();  //Make an instance.
+      xml2json.parse(response.body);
+      var jsondata = xml2json.toGData();
+      var placemarks = (JSON.jsonDecode(jsondata)["kml"]["Document"]["Folder"]["Placemark"] as List);
+      for (int i = 0; i < placemarks.length; i++) {
+        var properties = placemarks[i]["ExtendedData"]["Data"];
+        String lat = "", long = "", date = "", time = "";
+        for (int j=0; j < properties.length; j++) {
+          var kv = properties[j];
+          if (kv["name"] == "UTC_Date") {
+            date = kv["value"]["\$t"];
+          }
+          else if (kv["name"] == "UTC_Time") {
+            time = kv["value"]["\$t"];
+          }
+          else if (kv["name"] == "Latitude") {
+            lat = kv["value"]["\$t"];
+          }
+          else if (kv["name"] == "Longitude") {
+            long = kv["value"]["\$t"];
+          }
+        }
+
+        var location = Response(double.parse(lat), double.parse(long), date, time);
+        Marker marker = createMarker(i, location);
+        tempSet.add(marker);
+
+        setState(() {
+          _markers = tempSet;
+        });
+
+      }
+    });
+  }
+
+  void scheduleTimer() {
+    Timer.periodic(new Duration(seconds: 10 * 60), (timer) {
+      fetchData();
+    });
+  }
 }
 
 class Response {
@@ -128,7 +178,6 @@ class Response {
         long = double.parse(json['Longitude']),
         date = json['UTC_Date'],
         time = json['UTC_Time'];
-
 
 }
 
