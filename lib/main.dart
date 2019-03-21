@@ -4,6 +4,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert' as JSON;
 import 'dart:async' show Future;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:http/http.dart' as http;
+import 'package:xml2json/xml2json.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -115,4 +118,17 @@ class MapService {
 
   //timer that updates GPS data and refreshes the view
   //json parser in dart
+  var mapID = "https://www.google.com/maps/d/kml?mid=1c528h6kSOFLsJ0RWf0T-qE7j1yjCa9AB&forcekml=1";
+  final Xml2Json myTransformer = Xml2Json();
+
+  _fetchLatLong(url) async {
+    final Xml2Json myTransformer = Xml2Json();
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      myTransformer.parse(response.body);
+      return(myTransformer.toGData());
+    } else {
+      throw Exception('Failed to get lat/longs');
+    }
+  }
 }
