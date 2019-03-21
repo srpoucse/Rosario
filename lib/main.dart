@@ -36,6 +36,9 @@ class MapSampleState extends State<MapSample> {
     zoom: 8,
   );
 
+  CameraPosition mostRecent = null;
+  bool didZoom = false;
+  
   Set<Marker> _markers = {};
 
   @override
@@ -47,6 +50,10 @@ class MapSampleState extends State<MapSample> {
       appBar: AppBar(
         title: Text("Rosario's Journey"),
         backgroundColor: Colors.green[700],
+          actions: <Widget>[IconButton(
+          icon: didZoom ? Icon(Icons.zoom_out) : Icon(Icons.zoom_in),
+          onPressed: toggleZoom,
+        )],
       ),
       body: GoogleMap(
         mapType: MapType.hybrid,
@@ -82,6 +89,12 @@ class MapSampleState extends State<MapSample> {
           var location = Response.fromJson(locations[i]['properties']);
           Marker marker = createMarker(i, location);
           tempSet.add(marker);
+          if (i == 0) {
+            mostRecent = CameraPosition(
+              target: LatLng(location.lat, location.long),
+              zoom: 16,
+            );
+          }
         }
         setState(() {
           _markers = tempSet;
@@ -90,6 +103,15 @@ class MapSampleState extends State<MapSample> {
       } catch (e) {
         print(e.toString());
       }
+  }
+
+  Future<void> toggleZoom() async {
+    final GoogleMapController controller = await _controller.future;
+    CameraPosition position = didZoom ? center : mostRecent;
+    controller.animateCamera(CameraUpdate.newCameraPosition(position));
+    setState(() {
+      didZoom = !didZoom;
+    });
   }
 }
 
@@ -116,7 +138,4 @@ class MapService {
   Future<String> loadGPSData() async {
      return await rootBundle.loadString('assets/GPS.json');
   }
-
-  //timer that updates GPS data and refreshes the view
-  //json parser in dart
 }
