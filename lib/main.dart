@@ -48,6 +48,7 @@ class MapSampleState extends State<MapSample> {
   Widget build(BuildContext context) {
     if (_markers.length == 0) {
       setupMarkers();
+      fetchData();
     }
 
     scheduleTimer();
