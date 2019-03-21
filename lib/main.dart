@@ -48,17 +48,46 @@ class MapSampleState extends State<MapSample> {
         title: Text("Rosario's Journey"),
         backgroundColor: Colors.green[700],
       ),
-      body: GoogleMap(
-        mapType: MapType.hybrid,
-        initialCameraPosition: center,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-
-        },
-        markers: _markers,
+      body: Stack(
+        children: <Widget>[
+          GoogleMap(
+            mapType: MapType.hybrid,
+            initialCameraPosition: center,
+            onMapCreated: (GoogleMapController controller) {
+            _controller.complete(controller);
+            },
+            markers: _markers,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Align(
+              alignment: Alignment.topRight,
+              child: FloatingActionButton(
+                onPressed: _findRosario,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                backgroundColor: Colors.green,
+                child: const Icon(Icons.fullscreen, size: 36.0),
+              ),
+            ),
+          ),
+        ],
       )
     );
+  }
 
+  Future<void> _findRosario() async {
+    final GoogleMapController controller = await _controller.future;
+
+    String jsonString = await MapService().loadGPSData();
+    var locations = (JSON.jsonDecode(jsonString)['features'] as List);
+    var location = Response.fromJson(locations[0]['properties']);
+
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        target: LatLng(location.lat, location.long),
+        zoom: 16,
+      )
+    ));
   }
 
   Marker createMarker(int i, Response response) {
