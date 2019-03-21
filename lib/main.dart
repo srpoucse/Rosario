@@ -64,7 +64,7 @@ class MapSampleState extends State<MapSample> {
   Marker createMarker(int i, Response response) {
     return Marker(
       markerId: MarkerId(i.toString()),
-      //icon: BitmapDescriptor.fromAsset("assets/turtle.png"),
+      icon: (i == 0) ? BitmapDescriptor.fromAsset("assets/turtle.png") : BitmapDescriptor.defaultMarker,
       position: LatLng(response.lat, response.long),
       infoWindow: InfoWindow(
         title: "UTC Date: " + response.date.toString(),
@@ -82,7 +82,6 @@ class MapSampleState extends State<MapSample> {
           var location = Response.fromJson(locations[i]['properties']);
           Marker marker = createMarker(i, location);
           tempSet.add(marker);
-          print(location.lat.toString() + "---" + location.long.toString());
         }
         setState(() {
           _markers = tempSet;
