@@ -4,12 +4,17 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert' as JSON;
 import 'dart:async' show Future;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
 
     return MaterialApp(
       title: 'Flutter Google Maps Demo',
@@ -62,8 +67,8 @@ class MapSampleState extends State<MapSample> {
       //icon: BitmapDescriptor.fromAsset("assets/turtle.png"),
       position: LatLng(response.lat, response.long),
       infoWindow: InfoWindow(
-        title: response.date.toString(),
-        snippet: response.time.toString(),
+        title: "UTC Date: " + response.date.toString(),
+        snippet: "UTC Time: " + response.time.toString(),
       )
     );
   }
